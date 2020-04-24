@@ -207,3 +207,7 @@ disable create time of data, it can save memory.
 ```js
 als.disableCreateTime();
 ```
+
+
+## TODO
+* [ ] 拆分数据和父子对应关系

@@ -4,6 +4,7 @@ const util = require('util');
 const fs = require('fs');
 
 const map = new Map();
+const toRemove = new Map();
 
 const enabledDebug = process.env.DEBUG === 'als';
 
@@ -16,8 +17,9 @@ function debug(...args) {
 }
 
 let defaultLinkedTop = false;
-let enabledCreatedAt = false;
+let enabledCreatedAt = true;
 let defaultIgnoreNoneParent = false;
+let removeDelay = 60000;
 
 function isUndefined(value) {
   return value === undefined;
@@ -63,9 +65,20 @@ function getTop(data) {
   return result;
 }
 
+const delayRemove = id => {
+  if (!map.has(id)) {
+    return;
+  }
+  debug('destroy %d;(promiseResolve)', id);
+  toRemove.set(id, { id, removeAt: Date.now() + removeDelay })
+}
+
 let currentId = 0;
 const hooks = asyncHooks.createHook({
   init: function init(id, type, triggerId) {
+    if (type === 'SIGNALWRAP' || type === 'TTYWRAP' || type === 'TLSWRAP') {
+      return
+    }
     const data = {};
     // init, set the created time
     if (enabledCreatedAt) {
@@ -96,6 +109,8 @@ const hooks = asyncHooks.createHook({
       )
     }
   },
+  promiseResolve: delayRemove,
+  after: delayRemove,
   /**
    * Remove the data
    * @param {int} id asyncId
@@ -105,8 +120,9 @@ const hooks = asyncHooks.createHook({
     if (!map.has(id)) {
       return;
     }
-    debug('destroy %d', id);
+    debug('destroy %d;', id);
     map.delete(id);
+    toRemove.delete(id)
   },
 });
 
@@ -299,3 +315,21 @@ exports.enableCreateTime = function enableCreateTime() {
 exports.disableCreateTime = function disableCreateTime() {
   enabledCreatedAt = false;
 };
+
+exports.setRemoveDelay = delay => {
+  removeDelay = delay
+}
+
+setInterval(() => {
+  debug('toRemoveSize %d;',toRemove.size)
+  const now = Date.now()
+  toRemove.forEach(item => {
+      const { id, removeAt } = item
+      if (removeAt < now) {
+        map.delete(id)
+        toRemove.delete(id)
+        debug('remove %d;',id)
+      }
+    })
+  debug('toRemoveSize %d;',toRemove.size)
+}, 20000)
