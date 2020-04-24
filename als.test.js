@@ -269,6 +269,9 @@ describe('linked top', () => {
 });
 
 describe('get use', () => {
+  beforeAll(() => {
+    als.enableCreateTime()
+  })
   test('use', () => {
     als.scope();
     let id = als.currentId();
