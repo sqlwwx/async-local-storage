@@ -17,7 +17,7 @@ function debug(...args) {
 }
 
 let defaultLinkedTop = false;
-let enabledCreatedAt = true;
+let enabledCreatedAt = false;
 let defaultIgnoreNoneParent = false;
 let removeDelay = 60000;
 

@@ -269,9 +269,11 @@ describe('linked top', () => {
 });
 
 describe('get use', () => {
+  beforeAll(() => {
+    als.enableCreateTime()
+  })
   test('use', async () => {
     als.scope();
-    als.enableCreateTime()
     let id = als.currentId();
     return delay(10).then(() => {
       const use = als.use(id);
