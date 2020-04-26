@@ -1,0 +1,8 @@
+coverage/*
+.prettierrc
+tmp
+.eslintrc.js
+*.test.js
+examples/*
+support/*
+.travis.yml
